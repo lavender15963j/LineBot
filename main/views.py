@@ -22,7 +22,7 @@ def printDebug(text):
 
 @csrf_exempt
 def elapp(request):
-    printDebug("AAA")
+    printDebug(request.POST)
     return HttpResponse("GET")
     
     (mid,text)=_decode_json(request)
