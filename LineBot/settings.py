@@ -17,7 +17,6 @@ import django_heroku
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
@@ -135,3 +134,12 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Activate Django-Heroku.
 django_heroku.settings(locals())
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'mail.nuwainfo.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'test@nuwainfo.com'
+EMAIL_HOST_PASSWORD = 'test25025529'
+DEFAULT_FROM_EMAIL = 'test@nuwainfo.com'

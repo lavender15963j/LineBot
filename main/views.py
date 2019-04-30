@@ -3,13 +3,28 @@ from django.shortcuts import render
 # Create your views here.
 import json
 import sys
+import requests
 import urllib.request
 import urllib.error
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+
+@csrf_exempt
+def debug(request):
+    print(request.POST.get('text'))
+    return HttpResponse("POST")
+
+def printDebug(text):
+    requests.post("http://140.119.96.58:8000/debug/", data={"text": text,})
+    
+    
+
 @csrf_exempt
 def elapp(request):
+    printDebug("AAA")
+    return HttpResponse("GET")
+    
     (mid,text)=_decode_json(request)
     _to_LINE_server(mid, text)
     if request.method == 'GET':
