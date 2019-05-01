@@ -1,69 +1,85 @@
-from django.shortcuts import render
-
-# Create your views here.
 import json
-import sys
 import requests
-import urllib.request
-import urllib.error
+
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
+TOKEN = "eJiX8m+0k2Zg5y9d9VSep2E3IkSO5FkTS3D0tI7+hxFXegMDuak2KGMU3l/u3VXpb9ueFdq6Md7xTL8ibc0SCicorMM50327kU4gZQ+tEddaANMaw+dIUoRO8spm5+W1bL0axuaP6uJOjPNpmkKVXQdB04t89/1O/w1cDnyilFU="
+
+def reply(msg, text):
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        'Content-Type': 'application/json',
+        "Authorization": 'Bearer %s' % TOKEN,
+    }
+    payload = {
+        'replyToken': msg['replyToken'],
+        "messages": [
+            {
+                "type": "text",
+                "text": text,
+            }
+        ]
+    }
+    r = requests.post(url, data=json.dumps(payload), headers=headers)
+    
+def replyImage(msg, imgUrl):
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        'Content-Type': 'application/json',
+        "Authorization": 'Bearer %s' % TOKEN,
+    }
+    payload = {
+        'replyToken': msg['replyToken'],
+        "messages": [
+            {
+                "type": "image",
+                "originalContentUrl": imgUrl,
+                "previewImageUrl": imgUrl
+            }
+        ]
+    }
+    r = requests.post(url, data=json.dumps(payload), headers=headers)
+    
+def postWatson(text):
+    url = "https://nccu-107356017.mybluemix.net/linebot"
+    r = requests.post(url, data={"text": text})
+    
+    data = json.loads(r.text)
+    
+    generic = data.get('output', {}).get('generic', [])
+    indents = data.get('output', {}).get('indents', [])
+    entities = data.get('output', {}).get('entities', [])
+    
+    return (generic, indents, entities)
+    
+def doReply(body_unicode):
+    body = json.loads(body_unicode)
+    
+    msg = body["events"][0]
+    text = msg['message']['text']
+    
+    # --- do reply ---
+    generic, indents, entities = postWatson(text)
+    for g in generic:
+        t = g['text']
+        reply(msg, text)
+    # ----------------
+    
+    return HttpResponse("POST")
 
 @csrf_exempt
 def debug(request):
-    print(request.POST.get('text'))
-    return HttpResponse("POST")
+    text = request.POST.get('text')
+    print(text)
+    return doReply(text)
 
 def printDebug(text):
-    requests.post("http://140.119.96.58:8000/debug/", data={"text": text,})
+    requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
     
-    
-
 @csrf_exempt
 def elapp(request):
     printDebug(request.body.decode('utf-8'))
-    return HttpResponse("GET")
-    
-    (mid,text)=_decode_json(request)
-    _to_LINE_server(mid, text)
-    if request.method == 'GET':
-        return HttpResponse("GET")
-    elif request.method == 'POST':  
-        return HttpResponse("POST")
-        #return HttpResponse("POST")
-
-def _decode_json(request):
     body_unicode = request.body.decode('utf-8')
-    body = json.loads(body_unicode) 
-    _mid=body["result"][0]["content"]["from"]
-    _text=body["result"][0]["content"]["text"]  
-    return (_mid, _text)
-
-def _to_LINE_server(_mid, _text):
-    payload = {
-        "to": [_mid],
-        "toChannel":1383378250,
-        "eventType":"138311608800106203",    
-        "content":{
-            "contentType":1,
-            "toType":1,
-            "text":_text
-            #"text":body_unicode for debug(JSON object)
-        } 
-    }
-
-    req=urllib.request.Request("https://trialbot-api.line.me/v1/events",
-        data=json.dumps(payload).encode('utf8'),
-        headers={
-            "Content-type": "application/json; charset=UTF-8",
-            "X-Line-ChannelID": "Channel ID",
-            "X-Line-ChannelSecret": "Channel Secret",
-            "X-Line-Trusted-User-With-ACL": "u2b3adc9a2d583fb47b3e942f0043d339"
-        })
-
-    try:
-        with urllib.request.urlopen(req) as response:
-            print(response.read())
-    except urllib.error.HTTPError as err: 
-        print(err)
+    return doReply(body_unicode)
