@@ -7,6 +7,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 TOKEN = "eJiX8m+0k2Zg5y9d9VSep2E3IkSO5FkTS3D0tI7+hxFXegMDuak2KGMU3l/u3VXpb9ueFdq6Md7xTL8ibc0SCicorMM50327kU4gZQ+tEddaANMaw+dIUoRO8spm5+W1bL0axuaP6uJOjPNpmkKVXQdB04t89/1O/w1cDnyilFU="
 
+WATSON_API_URL = "https://nccu-107356017.mybluemix.net/linebot" 
+
 def reply(msg, text):
     url = "https://api.line.me/v2/bot/message/reply"
     headers = {
@@ -43,7 +45,7 @@ def replyImage(msg, imgUrl):
     r = requests.post(url, data=json.dumps(payload), headers=headers)
     
 def postWatson(text):
-    url = "https://nccu-107356017.mybluemix.net/linebot"
+    url = WATSON_API_URL
     r = requests.post(url, data={"text": text})
     
     data = json.loads(r.text)
@@ -64,7 +66,7 @@ def doReply(body_unicode):
     generic, indents, entities = postWatson(text)
     for g in generic:
         t = g['text']
-        reply(msg, text)
+        reply(msg, t)
     # ----------------
     
     return HttpResponse("POST")
@@ -74,12 +76,13 @@ def debug(request):
     text = request.POST.get('text')
     print(text)
     return doReply(text)
+    return HttpResponse("Test")
 
 def printDebug(text):
     requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
     
 @csrf_exempt
 def elapp(request):
-    printDebug(request.body.decode('utf-8'))
     body_unicode = request.body.decode('utf-8')
+    #printDebug(body_unicode)
     return doReply(body_unicode)
