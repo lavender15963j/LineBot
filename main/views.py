@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 TOKEN = "eJiX8m+0k2Zg5y9d9VSep2E3IkSO5FkTS3D0tI7+hxFXegMDuak2KGMU3l/u3VXpb9ueFdq6Md7xTL8ibc0SCicorMM50327kU4gZQ+tEddaANMaw+dIUoRO8spm5+W1bL0axuaP6uJOjPNpmkKVXQdB04t89/1O/w1cDnyilFU="
 
 WATSON_API_URL = "https://nccu-107356017.mybluemix.net/linebot" 
+WATSON_API_URL = "https://nccu-106356015.mybluemix.net/hw2" 
 
 def reply(msg, text):
     url = "https://api.line.me/v2/bot/message/reply"
@@ -62,7 +63,17 @@ def doReply(body_unicode):
     msg = body["events"][0]
     text = msg['message']['text']
     
-    # --- do reply ---
+    # --- do reply ---    
+    # if text == 天氣:
+        # 查詢 API
+        # reply(天氣)
+    # elif text == 餐廳景點:
+        # 找餐廳
+        # reply(餐廳景點)
+    # else:
+        # 傳給 WationAPI
+        # reply(聊天)
+        
     generic, indents, entities = postWatson(text)
     for g in generic:
         t = g['text']
@@ -84,5 +95,5 @@ def printDebug(text):
 @csrf_exempt
 def elapp(request):
     body_unicode = request.body.decode('utf-8')
-    #printDebug(body_unicode)
+    printDebug(body_unicode)
     return doReply(body_unicode)
