@@ -90,7 +90,10 @@ def debug(request):
     return HttpResponse("Test")
 
 def printDebug(text):
-    requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
+    try:
+        requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
+    except Exception as e:
+        pass
     
 @csrf_exempt
 def elapp(request):
