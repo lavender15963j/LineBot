@@ -89,16 +89,14 @@ def debug(request):
     return doReply(text)
 
 def printDebug(text):
-    try:
-        requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
-    except Exception as e:
-        pass
+    requests.post("http://140.119.96.43:8000/debug/", data={"text": text,})
+    return
     
 @csrf_exempt
 def elapp(request):
     if request.POST:
         body_unicode = request.body.decode('utf-8')
-        #printDebug(body_unicode)
+        printDebug(body_unicode)
         return doReply(body_unicode)
     else:
         return HttpResponse("GET")
