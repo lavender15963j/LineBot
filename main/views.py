@@ -1,9 +1,14 @@
 import json
+import random
+
 import requests
 
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from main.models import Chat
+from django.db.models import Q
 
 TOKEN = "eJiX8m+0k2Zg5y9d9VSep2E3IkSO5FkTS3D0tI7+hxFXegMDuak2KGMU3l/u3VXpb9ueFdq6Md7xTL8ibc0SCicorMM50327kU4gZQ+tEddaANMaw+dIUoRO8spm5+W1bL0axuaP6uJOjPNpmkKVXQdB04t89/1O/w1cDnyilFU="
 
@@ -45,6 +50,25 @@ def replyImage(msg, imgUrl):
     }
     r = requests.post(url, data=json.dumps(payload), headers=headers)
     
+def replySticker(msg, pkgId, stickerId):
+    url = "https://api.line.me/v2/bot/message/reply"
+    headers = {
+        'Content-Type': 'application/json',
+        "Authorization": 'Bearer %s' % TOKEN,
+    }
+    payload = {
+        'replyToken': msg['replyToken'],
+        "messages": [
+            {
+                "type": "sticker",
+                "packageId": str(pkgId),
+                "stickerId": str(stickerId),
+            }
+        ]
+    }
+    r = requests.post(url, data=json.dumps(payload), headers=headers)
+    
+    
 def postWatson(text):
     url = WATSON_API_URL
     r = requests.post(url, data={"text": text})
@@ -61,23 +85,36 @@ def doReply(body_unicode):
     body = json.loads(body_unicode)
     
     msg = body["events"][0]
-    text = msg['message']['text']
+    type = msg['message']['type']
     
     # --- do reply ---    
-    # if text == 天氣:
-        # 查詢 API
-        # reply(天氣)
-    # elif text == 餐廳景點:
-        # 找餐廳
-        # reply(餐廳景點)
-    # else:
-        # 傳給 WationAPI
-        # reply(聊天)
+    if type == "sticker":
+        pkgId = random.choice('1')
+        stickerId = random.choice(list(range(1, 10)))
+        replySticker(msg, pkgId, stickerId)
+    elif type == 'image':
+        reply(msg, "姆咪看不懂這張圖片")
+    elif type == 'text':
+        text = msg['message']['text']
         
-    generic, indents, entities = postWatson(text)
-    for g in generic:
-        t = g['text']
-        reply(msg, t)
+        chats = [{'keyword': chat.keyword.split(','), 'response': chat.response,} for chat in Chat.objects.all()]
+        response = False
+        for c in chats:
+            rq = True
+            for k in c['keyword']:
+                if not k in text:
+                    rq = False
+            if rq:
+                reply(msg, c['response'])
+                response = True
+        
+        if not response:
+            generic, indents, entities = postWatson(text)
+            for g in generic:
+                t = g['text']
+                reply(msg, t)
+    else:
+        reply(msg, "姆咪智障，姆咪不懂")
     # ----------------
     
     return HttpResponse("POST")
@@ -95,5 +132,5 @@ def printDebug(text):
 @csrf_exempt
 def elapp(request):
     body_unicode = request.body.decode('utf-8')
-    printDebug(body_unicode)
+    #printDebug(body_unicode)
     return doReply(body_unicode)
