@@ -94,9 +94,6 @@ def printDebug(text):
     
 @csrf_exempt
 def elapp(request):
-    if request.POST:
-        body_unicode = request.body.decode('utf-8')
-        printDebug(body_unicode)
-        return doReply(body_unicode)
-    else:
-        return HttpResponse("GET")
+    body_unicode = request.body.decode('utf-8')
+    printDebug(body_unicode)
+    return doReply(body_unicode)
