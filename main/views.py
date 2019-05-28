@@ -86,6 +86,27 @@ def postWatson(text):
     
     return (generic, indents, entities)
     
+def post_facebook_message(fbid, recevied_message):
+    # Remove all punctuations, lower case the text and split it based on space
+    tokens = re.sub(r"[^a-zA-Z0-9\s]",' ',recevied_message).lower().split()
+    joke_text = ''
+    for token in tokens:
+        if token in jokes:
+            joke_text = random.choice(jokes[token])
+            break
+    if not joke_text:
+        joke_text = "I didn't understand! Send 'stupid', 'fat', 'dumb' for a Yo Mama joke!" 
+
+    user_details_url = "https://graph.facebook.com/v2.6/%s"%fbid 
+    user_details_params = {'fields':'first_name,last_name,profile_pic', 'access_token':PAGE_ACCESS_TOKEN} 
+    user_details = requests.get(user_details_url, user_details_params).json() 
+    joke_text = 'Yo '+user_details['first_name']+'..! ' + joke_text
+                   
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":joke_text}})
+    status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
+    pprint(status.json())
+    
 def doReply(body_unicode):
     body = json.loads(body_unicode)
     
@@ -123,11 +144,47 @@ def doReply(body_unicode):
     # ----------------
     
     return HttpResponse("POST")
+    
+def getResponse(chats, msg):
+    for c in chats:
+        rq = True
+        for k in c['keyword']:
+            if not k in msg:
+                rq = False
+        if rq:
+            return c['response']
+    return "小紫兒看不懂你在說三小"
+    
+
+def replyMessager(text):
+    body = json.loads(text)
+    chats = [{'keyword': chat.keyword.split(','), 'response': chat.response,} for chat in Chat.objects.all()]
+    
+    for entry in body['entry']:
+        for message in entry['messaging']:
+            uid = message['sender']['id']
+            msg = message['message']['text']
+            
+            postUrl = 'https://graph.facebook.com/v3.3/me/messages?access_token=%s' % PAGE_ACCESS_TOKEN
+            
+            req = getResponse(chats, msg)
+            
+            responseMsg = json.dumps({
+                "recipient": {
+                     "id": uid,
+                }, 
+                "message": {
+                     "text": req,
+                }
+            })
+            
+            status = requests.post(postUrl, headers={"Content-Type": "application/json"}, data=responseMsg)
+    return HttpResponse("POST")
 
 @csrf_exempt
 def debug(request):
     text = request.POST.get('text')
-    print(text)
+    return replyMessager(text)
     return doReply(text)
 
 def printDebug(text):
@@ -139,13 +196,6 @@ def elapp(request):
     body_unicode = request.body.decode('utf-8')
     #printDebug(body_unicode)
     return doReply(body_unicode)
-    
-    
-@csrf_exempt
-def fbMessagerHandler(request):
-    msg = request.body.decode('utf-8')
-    printDebug(msg)
-    return HttpResponse("POST")
     
 class MessagerBotView(generic.View):
     def get(self, request, *args, **kwargs):
@@ -161,5 +211,4 @@ class MessagerBotView(generic.View):
 
     def post(self, request, *args, **kwargs):
         msg = request.body.decode('utf-8')
-        printDebug(msg)
-        return HttpResponse("POST")
+        return replyMessager(text)
