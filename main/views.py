@@ -149,14 +149,15 @@ def fbMessagerHandler(request):
     
 class MessagerBotView(generic.View):
     def get(self, request, *args, **kwargs):
-        if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
-            return HttpResponse(self.request.GET['hub.challenge'])
+        verify = request.GET.get('hub.verify_token')
+        if verify == VERIFY_TOKEN:
+            return HttpResponse(VERIFY_TOKEN)
         else:
             return HttpResponse('Error, invalid token')
         
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        return generic.View.dispatch(self, request, *args, **kwargs)
+        return super(MessagerBotView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         msg = request.body.decode('utf-8')
