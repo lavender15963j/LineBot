@@ -211,4 +211,5 @@ class MessagerBotView(generic.View):
 
     def post(self, request, *args, **kwargs):
         msg = request.body.decode('utf-8')
-        return replyMessager(text)
+        #printDebug(msg)
+        return replyMessager(msg)
