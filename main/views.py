@@ -182,7 +182,7 @@ class MessagerBotView(generic.View):
     def get(self, request, *args, **kwargs):
         verify = request.GET.get('hub.verify_token')
         if verify == VERIFY_TOKEN:
-            return HttpResponse(VERIFY_TOKEN)
+            return HttpResponse(request.GET.get('hub.challenge'))
         else:
             return HttpResponse('Error, invalid token')
         
