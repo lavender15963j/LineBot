@@ -132,18 +132,19 @@ def getResponse(chats, msg):
                 rq = False
         if rq:
             return c['response']
-    return "小紫兒看不懂你在說三小"
+    return "小紫兒看不懂你在說什麼"
     
 
 def replyMessager(text):
     body = json.loads(text)
     chats = [{'keyword': chat.keyword.split(','), 'response': chat.response,} for chat in Chat.objects.all()]
+    chats.sort(key=lambda x: len(x['response']), reverse=True)
     
     for entry in body['entry']:
         for message in entry['messaging']:
             uid = message['sender']['id']
             msg = message['message']['text']
-            print(uid, msg)
+            
             postUrl = 'https://graph.facebook.com/v3.3/me/messages?access_token=%s' % PAGE_ACCESS_TOKEN
             
             req = getResponse(chats, msg)
@@ -190,5 +191,5 @@ class MessagerBotView(generic.View):
 
     def post(self, request, *args, **kwargs):
         msg = request.body.decode('utf-8')
-        printDebug(msg)
+        
         return replyMessager(msg)
