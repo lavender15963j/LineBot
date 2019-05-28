@@ -134,3 +134,10 @@ def elapp(request):
     body_unicode = request.body.decode('utf-8')
     #printDebug(body_unicode)
     return doReply(body_unicode)
+    
+    
+@csrf_exempt
+def fbMessagerHandler(request):
+    msg = request.data.decode('utf8')
+    printDebug(msg)
+    return HttpResponse("POST")
