@@ -17,11 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from main.views import elapp, debug, fbMessagerHandler
+from main.views import elapp, debug, fbMessagerHandler, MessagerBotView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('line/reply/', elapp),
     path('debug/', debug),
-    path('fb/chat/', fbMessagerHandler),
+    path('fb/chat/', MessagerBotView.as_view()),
 ]

@@ -3,9 +3,11 @@ import random
 
 import requests
 
+from django.views import generic
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from main.models import Chat
 from django.db.models import Q
@@ -14,6 +16,9 @@ TOKEN = "eJiX8m+0k2Zg5y9d9VSep2E3IkSO5FkTS3D0tI7+hxFXegMDuak2KGMU3l/u3VXpb9ueFdq
 
 WATSON_API_URL = "https://nccu-107356017.mybluemix.net/linebot" 
 WATSON_API_URL = "https://nccu-106356015.mybluemix.net/hw2" 
+
+PAGE_ACCESS_TOKEN = "EAARyZADnEubsBAFZBMZBMQb2ku8fLpCRO9Xmf4pjpTSMSMCtsIYs8OXIv9DnRPO01EAvI9DOVVqxvTUqZBVcxyMGrI6j0wWWZA7GiKAoLYdSbP0LccmAD4FJv5f08qgC55BP7pmQT3KrjOfwFvq6rCI7F8dwYMevpkVEjhFXRgbakTvFxgQqQnaEn87dwZBUUZD"
+VERIFY_TOKEN = "lavender15963j"
 
 def reply(msg, text):
     url = "https://api.line.me/v2/bot/message/reply"
@@ -138,6 +143,22 @@ def elapp(request):
     
 @csrf_exempt
 def fbMessagerHandler(request):
-    msg = request.data.decode('utf8')
+    msg = request.body.decode('utf-8')
     printDebug(msg)
     return HttpResponse("POST")
+    
+class MessagerBotView(generic.View):
+    def get(self, request, *args, **kwargs):
+        if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
+            return HttpResponse(self.request.GET['hub.challenge'])
+        else:
+            return HttpResponse('Error, invalid token')
+        
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return generic.View.dispatch(self, request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        msg = request.body.decode('utf-8')
+        printDebug(msg)
+        return HttpResponse("POST")
