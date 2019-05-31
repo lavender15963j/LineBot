@@ -169,7 +169,7 @@ def debug(request):
     return doReply(text)
 
 def printDebug(text):
-    requests.post("http://140.119.96.8:8000/debug/", data={"text": text,})
+    requests.post("http://140.119.96.18:8000/messager/webhook/", data=text)
     return
     
 @csrf_exempt
@@ -193,4 +193,4 @@ class MessagerBotView(generic.View):
     def post(self, request, *args, **kwargs):
         msg = request.body.decode('utf-8')
         printDebug(msg)
-        return replyMessager(msg)
+        return HttpResponse('Success')
