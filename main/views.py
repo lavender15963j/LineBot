@@ -169,7 +169,7 @@ def debug(request):
     return doReply(text)
 
 def printDebug(text):
-    requests.post("http://140.119.96.18:8000/messager/webhook/", data=text)
+    requests.post("http://clover.servehttp.com:8000/messager/webhook/", data=text)
     return
     
 @csrf_exempt
